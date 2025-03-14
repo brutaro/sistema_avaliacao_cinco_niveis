@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Avaliação em Cinco Níveis</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        
+        .header p {
+            margin: 10px 0 0;
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .intro {
+            text-align: center;
+            margin-bottom: 40px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .intro p {
+            color: #555;
+            font-size: 16px;
+        }
+        
+        /* Novo layout escada em espiral */
+        .evaluation-staircase {
+            position: relative;
+            margin: 20px auto 60px;
+            max-width: 950px;
+        }
+        
+        .level-item {
+            display: flex;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        /* Alternância de layout esquerda-direita para efeito visual de escada ascendente */
+        .level-item:nth-child(odd) {
+            flex-direction: row;
+        }
+        
+        .level-item:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+        
+        /* Linha conectora central */
+        .level-item::before {
+            content: "";
+            position: absolute;
+            width: 4px;
+            background: linear-gradient(to bottom, 
+                #3498db, #27ae60, #f39c12, #9b59b6, #e74c3c
+            );
+            left: 50%;
+            transform: translateX(-50%);
+            top: 0;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .level-item:first-child::before {
+            top: 20px;
+        }
+        
+        .level-item:last-child::before {
+            height: 20px;
+        }
+        
+        .level-number {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        
+        .level-1 .level-number { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .level-2 .level-number { background: linear-gradient(135deg, #27ae60, #219251); }
+        .level-3 .level-number { background: linear-gradient(135deg, #f39c12, #d35400); }
+        .level-4 .level-number { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        .level-5 .level-number { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        
+        .level-card {
+            width: 42%;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .level-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .level-header {
+            color: white;
+            padding: 15px 20px;
+        }
+        
+        .level-1 .level-header { background: linear-gradient(to right, #3498db, #2980b9); }
+        .level-2 .level-header { background: linear-gradient(to right, #27ae60, #219251); }
+        .level-3 .level-header { background: linear-gradient(to right, #f39c12, #d35400); }
+        .level-4 .level-header { background: linear-gradient(to right, #9b59b6, #8e44ad); }
+        .level-5 .level-header { background: linear-gradient(to right, #e74c3c, #c0392b); }
+        
+        .level-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0;
+        }
+        
+        .level-content {
+            padding: 20px;
+        }
+        
+        .level-subtitle {
+            font-size: 18px;
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        
+        .content-tabs {
+            display: flex;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 15px;
+        }
+        
+        .tab {
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            color: #777;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            color: #2c3e50;
+            border-bottom-color: #2c3e50;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .tab-content ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .tab-content li {
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        /* Ciclo de feedback redesenhado */
+        .feedback-cycle {
+            margin: 50px auto 20px;
+            max-width: 800px;
+            background: linear-gradient(to right, #f5f9ff, #fff);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            position: relative;
+        }
+        
+        .feedback-cycle h3 {
+            text-align: center;
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+        
+        .cycle-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .cycle-steps {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 80%;
+            max-width: 600px;
+            position: relative;
+        }
+        
+        .cycle-step {
+            width: 160px;
+            height: 100px;
+            margin: 10px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .cycle-step:hover {
+            transform: scale(1.05);
+        }
+        
+        .step-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .step-1 { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .step-2 { background: linear-gradient(135deg, #27ae60, #219251); }
+        .step-3 { background: linear-gradient(135deg, #f39c12, #d35400); }
+        .step-4 { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        
+        .cycle-arrows {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+        
+        .cycle-description {
+            text-align: center;
+            margin-top: 20px;
+            color: #555;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 15px;
+            color: #7f8c8d;
+            font-size: 14px;
+            background-color: #f5f5f5;
+            border-top: 1px solid #eee;
+            border-radius: 0 0 10px 10px;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 900px) {
+            .level-item {
+                flex-direction: column !important;
+                align-items: center;
+            }
+            
+            .level-card {
+                width: 85%;
+                max-width: 500px;
+                margin-top: 40px;
+            }
+            
+            .level-number {
+                top: 0;
+            }
+            
+            .level-item::before {
+                left: 50%;
+                height: calc(100% + 30px);
+            }
+            
+            .cycle-steps {
+                width: 100%;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .level-card {
+                width: 95%;
+            }
+            
+            .cycle-step {
+                width: 130px;
+                height: 90px;
+                padding: 10px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Sistema de Avaliação em Cinco Níveis</h1>
+            <p>Baseado no framework de Kirkpatrick, ampliado por Phillips (1997)</p>
+        </div>
+        
+        <div class="content">
+            <div class="intro">
+                <p>O sistema de acompanhamento e avaliação é um componente estratégico do processo formativo, orientado tanto à mensuração de resultados quanto à identificação de oportunidades de aprimoramento. O modelo articula cinco níveis progressivos, criando uma visão integrada e multidimensional dos resultados.</p>
+            </div>
+            
+            <div class="evaluation-staircase">
+                <!-- Nível 1: Reação -->
+                <div class="level-item level-1">
+                    <div class="level-number">1</div>
+                    <div class="level-card">
+                        <div class="level-header">
+                            <h3 class="level-title">Reação</h3>
+                        </div>
+                        <div class="level-content">
+                            <h4 class="level-subtitle">Avaliação da experiência imediata</h4>
+                            
+                            <div class="content-tabs">
+                                <div class="tab active" onclick="changeTab(this, 'objectives-1')">Objetivos</div>
+                                <div class="tab" onclick="changeTab(this, 'methods-1')">Métodos</div>
+                                <div class="tab" onclick="changeTab(this, 'indicators-1')">Indicadores</div>
+                                <div class="tab" onclick="changeTab(this, 'results-1')">Resultados</div>
+                            </div>
+                            
+                            <div id="objectives-1" class="tab-content active">
+                                <ul>
+                                    <li>Avaliar satisfação dos participantes</li>
+                                    <li>Mensurar percepção sobre relevância das atividades</li>
+                                    <li>Identificar pontos fortes e oportunidades de melhoria</li>
+                                </ul>
+                            </div>
+                            
+                            <div id="methods-1" class="tab-content">
+                                <ul>
+                                    <li>Pesquisas de satisfação</li>
+                                    <li>Net Promoter Score (NPS)</li>
+                                    <li>Formulários de feedback</li>
+                                    <li>Check-ins durante as atividades</li>
+                                </ul>
+                            </div>
+                            
+                            <div id="indicators-1" class="tab-content">
+                                <ul>
+                                    <li>Índice de satisfação geral</li>
+                                    <li>Percepção de aplicabilidade</li>
+                                    <li>Avaliação de facilitadores e recursos</li>
+                                    <li>Taxa de engajamento nas atividades</li>
+                                </ul>
+                            </div>
+                            
+                            <div id="results-1" class="tab-content">
+                                <ul>
+                                    <li>NPS de 85 pontos nas atividades principais</li>
+                                    <li>94% dos participantes avaliam conteúdos como "muito relevantes"</li>
+                                    <li>Taxa de engajamento de 89% nas atividades propostas</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Nível 2: Aprendizagem -->
+                <div class="level-item level-2">
+                    <div class="level-number">2</div>
+                    <div class="level-card">
+                        <div class="level-header">
+                            <h3 class="level-title">Aprendizagem</h3>
+                        </div>
+                        <div class="level-content">
+                            <h4 class="level-subtitle">Aquisição de conhecimentos e habilidades</h4>
+                            
+                            <div class="content-tabs">
+                                <div class="tab active" onclick="changeTab(this, 'objectives-2')">Objetivos</div>
+                                <div class="tab" onclick="changeTab(this, 'methods-2')">Métodos</div>
+                                <div class="tab" onclick="changeTab(this, 'indicators-2')">Indicadores</div>
+                                <div class="tab" onclick="changeTab(this, 'results-2')">Resultados</div>
+                            </div>
+                            
+                            <div id="objectives-2" class="tab-content active">
+                                <ul>
+                                    <li>Avaliar aquisição de conhecimentos</li>
+                                    <li>Verificar desenvolvimento de competências</li>
+                                    <li>Mensurar mudanças de atitude</li>
+                                </ul>
+                            </div>
+                            
+                            <div id="methods-2" class="tab-content">
+                                <ul>
+                                    <li>Avaliações formativas e somativas</li>
+                                    <li>Autoavaliação de competências</li>
+                                    <li>Projetos de aplicação</li>
+                                    <li>Rubricas de desenvolvimento</li>
+                                </ul>
+                            </div>
+                            
+                            <div id="indicators-2" class="tab-content">
+                                <ul>
+                                    <li>Proficiência em competências-chave</li>
+                                    <li>Capacidade de resolução de problemas</li>
+                                    <li>Evolução em relação à linha de base</li>
+                                </ul>
+                            </div>
+                            
+                            <div id="results-2" class="tab-content">
+                                <ul>
+                                    <li>Aumento de 65% nas competências de liderança colaborativa</li>
+                                    <li>90% demonstraram domínio de ferramentas de gestão inovadora</li>
+                                    <li>Elaboração de 45 planos de ação baseados em evidências</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Nível 3: Aplicação -->
+                <div class="level-item level-3">
+                    <div class="level-number">3</div>
+                    <div class="level-card">
+                        <div class="level-header">
+                            <h3 class="level-title">Aplicação</h3>
+                        </div>
+                        <div class="level-content">
+                            <h4 class="level-subtitle">Implementação prática no trabalho</h4>
+                            
+                            <div class="content-tabs">
+                                <div class="tab active" onclick="changeTab(this, 'objectives-3')">Objetivos</div>
+                                <div class="tab" onclick="changeTab(this, 'methods-3')">Métodos</div>
+                                <div class="tab" onclick="changeTab(this, 'indicators-3')">Indicadores</div>
+                                <div class="tab" onclick="changeTab(this, 'results-3')">Resultados</div>
+                            </div>
+                            
+                            <div id="objectives-3" class="tab-content active">
+                                <ul>
+                                    <li>Avaliar a implementação das competências no trabalho</li>
+                                    <li>Identificar fatores que facilitam ou dificultam a aplicação</li>
+                                    <li>Mensurar mudanças comportamentais nas rotinas</li>
+                                </ul>
+                            </div>
+                            
+                            <div id="methods-3" class="tab-content">
+                                <ul>
+                                    <li>Observação in loco</li>
+                                    <li>Relatos de aplicação (portfólios)</li>
+                                    <li>Feedback de pares e superiores</li>
+                                    <li>Diários de prática reflexiva</li>
+                                </ul>
+                            </div>
+                            
+                            <div id="indicators-3" class="tab-content">
+                                <ul>
+                                    <li>Frequência de aplicação das competências</li>
+                                    <li>Qualidade das iniciativas implementadas</li>
+                                    <li>Superação de barreiras institucionais</li>
+                                </ul>
+                            </div>
+                            
+                            <div id="results-3" class="tab-content">
+                                <ul>
+                                    <li>78% dos egressos implementaram novos métodos de gestão</li>
+                                    <li>Criação de 23 projetos inovadores liderados por egressos</li>
+                                    <li>Desenvolvimento de novos fluxos de trabalho colaborativo</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Nível 4: Impacto Organizacional -->
+                <div class="level-item level-4">
+                    <div class="level-number">4</div>
+                    <div class="level-card">
+                        <div class="level-header">
+                            <h3 class="level-title">Impacto Organizacional</h3>
+                        </div>
+                        <div class="level-content">
+                            <h4 class="level-subtitle">Transformações nos processos institucionais</h4>
+                            
+                            <div class="content-tabs">
+                                <div class="tab active" onclick="changeTab(this, 'objectives-4')">Objetivos</div>
+                                <div class="tab" onclick="changeTab(this, 'methods-4')">Métodos</div>
+                                <div class="tab" onclick="changeTab(this, 'indicators-4')">Indicadores</div>
+                                <div class="tab" onclick="changeTab(this, 'results-4')">Resultados</div>
+                            </div>
+                            
+                            <div id="objectives-4" class="tab-content active">
+                                <ul>
+                                    <li>Avaliar transformações em processos institucionais</li>
+                                    <li>Mensurar impactos em equipes e departamentos</li>
+                                    <li>Identificar melhorias em indicadores organizacionais</li>
+                                </ul>
+                            </div>
+                            
+                            <div id="methods-4" class="tab-content">
+                                <ul>
+                                    <li>Entrevistas com gestores superiores</li>
+                                    <li>Análise de dados de desempenho institucional</li>
+                                    <li>Auditorias de processos e resultados</li>
+                                </ul>
+                            </div>
+                            
+                            <div id="indicators-4" class="tab-content">
+                                <ul>
+                                    <li>Eficiência em processos-chave</li>
+                                    <li>Clima organizacional e engajamento</li>
+                                    <li>Indicadores de produtividade das equipes</li>
+                                </ul>
+                            </div>
+                            
+                            <div id="results-4" class="tab-content">
+                                <ul>
+                                    <li>Aumento de 30% na colaboração interdepartamental</li>
+                                    <li>Redução de 15% em processos burocráticos</li>
+                                    <li>Melhoria na retenção de talentos na organização</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Nível 5: Geração de Valor Público -->
+                <div class="level-item level-5">
+                    <div class="level-number">5</div>
+                    <div class="level-card">
+                        <div class="level-header">
+                            <h3 class="level-title">Geração de Valor Público</h3>
+                        </div>
+                        <div class="level-content">
+                            <h4 class="level-subtitle">Impacto social e valor para os cidadãos</h4>
+                            
+                            <div class="content-tabs">
+                                <div class="tab active" onclick="changeTab(this, 'objectives-5')">Objetivos</div>
+                                <div class="tab" onclick="changeTab(this, 'methods-5')">Métodos</div>
+                                <div class="tab" onclick="changeTab(this, 'indicators-5')">Indicadores</div>
+                                <div class="tab" onclick="changeTab(this, 'results-5')">Resultados</div>
+                            </div>
+                            
+                            <div id="objectives-5" class="tab-content active">
+                                <ul>
+                                    <li>Avaliar o impacto social das ações de liderança</li>
+                                    <li>Mensurar melhorias em serviços públicos</li>
+                                    <li>Identificar transformações na percepção dos cidadãos</li>
+                                </ul>
+                            </div>
+                            
+                            <div id="methods-5" class="tab-content">
+                                <ul>
+                                    <li>Estudos de caso aprofundados</li>
+                                    <li>Pesquisas com usuários dos serviços</li>
+                                    <li>Análise de indicadores sociais</li>
+                                </ul>
+                            </div>
+                            
+                            <div id="indicators-5" class="tab-content">
+                                <ul>
+                                    <li>Melhoria em índices de satisfação cidadã</li>
+                                    <li>Impacto em políticas públicas</li>
+                                    <li>Transformações sustentáveis nos serviços</li>
+                                </ul>
+                            </div>
+                            
+                            <div id="results-5" class="tab-content">
+                                <ul>
+                                    <li>Redução de 20% no tempo de atendimento ao cidadão</li>
+                                    <li>Implementação de novas políticas baseadas em evidências</li>
+                                    <li>Reconhecimento de inovações por premiações setoriais</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feedback-cycle">
+                <h3>Ciclo de Aprimoramento Contínuo</h3>
+                
+                <div class="cycle-container">
+                    <div class="cycle-steps">
+                        <div class="cycle-step step-1">
+                            <div class="step-icon">📊</div>
+                            <div>Coleta de Evidências</div>
+                        </div>
+                        <div class="cycle-step step-2">
+                            <div class="step-icon">🔍</div>
+                            <div>Análise de Resultados</div>
+                        </div>
+                        <div class="cycle-step step-3">
+                            <div class="step-icon">💡</div>
+                            <div>Recomendações</div>
+                        </div>
+                        <div class="cycle-step step-4">
+                            <div class="step-icon">⚙️</div>
+                            <div>Implementação</div>
+                        </div>
+                        
+                        <svg class="cycle-arrows" width="100%" height="100%" viewBox="0 0 500 300" style="position: absolute; z-index: -1;">
+                            <defs>
+                                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                                    <polygon points="0 0, 10 3.5, 0 7" fill="#555" />
+                                </marker>
+                            </defs>
+                            
+                            <!-- Setas conectando os passos -->
+                            <path d="M 160 60 C 200 20, 300 20, 340 60" stroke="#555" stroke-width="2" fill="none" marker-end="url(#arrowhead)" />
+                            <path d="M 340 140 C 300 180, 200 180, 160 140" stroke="#555" stroke-width="2" fill="none" marker-end="url(#arrowhead)" />
+                            <path d="M 80 140 C 40 180, 40 280, 80 280" stroke="#555" stroke-width="2" fill="none" marker-end="url(#arrowhead)" />
+                            <path d="M 420 280 C 460 280, 460 180, 420 140" stroke="#555" stroke-width="2" fill="none" marker-end="url(#arrowhead)" />
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="cycle-description">
+                    <p>O sistema de avaliação não é estático, mas um processo dinâmico e contínuo. Os resultados obtidos em cada nível alimentam o planejamento e aprimoramento das atividades formativas, garantindo adaptabilidade, relevância e foco em resultados significativos para participantes, organizações e sociedade.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Baseado no framework de Kirkpatrick, ampliado por Phillips (1997) e adaptado com métodos mistos (CRESWELL, 2014)</p>
+        </div>
+    </div>
+    
+    <script>
+        function changeTab(tabElement, contentId) {
+            // Remove active class from all tabs in the same group
+            const tabGroup = tabElement.parentElement;
+            const tabs = tabGroup.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Add active class to clicked tab
+            tabElement.classList.add('active');
+            
+            // Get all tab content elements and hide them
+            const tabContents = tabGroup.parentElement.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Show the selected tab content
+            document.getElementById(contentId).classList.add('active');
+        }
+    </script>
+</body>
+</html>
